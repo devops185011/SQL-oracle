@@ -1,0 +1,26 @@
+                                          SQL service status
+Assumptions:
+1. There should be common credentials for all database servers.
+2. User should have elivated privledge to all database servers.
+3. User should have access to run queries to get the sql server name, sql service name and running status.
+4. The scripts will run in powershell version 2
+
+
+
+
+Algorithm:
+
+1. Script run from desktop.
+	a) User need to keep the scripts in a particular folder
+	b) User Need to double click the SqlServiceStatus.bat file
+
+2. It will prompt for credentials
+	
+3. It will fetch the server name from the server list file(Allservers.txt).
+
+4. For each server name it will fetch the information of service which are running.
+
+5. Script gives SystemName,Name,state,displayname,starttime,Current_Date & Uptime
+
+6. It will store the output in file (SQL_Service_status_report.csv ).
+

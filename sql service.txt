@@ -1,0 +1,16 @@
+$servers=Get-Content -Path "C:\AllSever.txt"
+$cred=Get-Credential
+
+
+foreach($server in $servers)
+{
+   
+    if(Test-Connection $server -Quiet)
+    {
+       $sqlstatus=Get-WmiObject -class "win32_service" -ComputerName $server -Credential $cred|
+        ?{$_.state -eq "running"}|?{$_.name -like "MSSQL$*" -or $_.name -like "SQLSERVER Agent*" -or $_.name -eq "MSSQLSERVER" -or $_.name -like "SQLAgent$*"  -or $_.name -like "SQLBROWSER"}|
+        select @{n='ServerName';e={$_.PSComputerName}},@{n='ServiceName';e={$_.Name}},@{n='Start Type';e={$_.startmode}},@{n='Status';e={$_.state}}
+        $sqlstatus|ft -AutoSize |out-file -Append -FilePath "D:\sqlstatus.txt"
+    }
+   
+}

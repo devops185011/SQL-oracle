@@ -1,0 +1,27 @@
+#####################################################################
+#drop user
+ 
+[string[]]$server_list='WINODWS\SQLDATA'
+[string[]]$login_list = 'vineet'
+[boolean]$debug = $true; 
+
+foreach ($svr in $server_list)
+{
+  $s = New-Object "microsoft.sqlserver.management.smo.server" $svr
+  if ($debug) {":connect $svr";}
+
+  $logins = $s.logins | ? { $_.name -in $login_list } 
+
+  if ($logins.count -gt 0)
+  {
+    foreach ($db in $s.databases)
+    {
+        
+    
+    $logins.drop(); 
+       
+
+  }
+} 
+
+}  

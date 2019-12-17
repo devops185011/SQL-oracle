@@ -1,0 +1,45 @@
+#create database
+
+    param(
+    [string]$serverName="WINODWS\SQLDATA",
+    [string]$DBName="sample",
+    [string]$user="sanket"
+    )
+
+    [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | out-null
+
+    $server = new-object ('Microsoft.SqlServer.Management.Smo.Server') $serverName 
+  # $server.ConnectionContext|gm
+    
+    $dbExists = $FALSE
+
+    foreach ($db in $server.databases) {
+      if ($db.name -eq $DBName) {
+        Write-Host "Db already exists."
+        $dbExists = $TRUE
+      }
+    }
+
+    if ($dbExists -eq $FALSE) {
+   #	$server.ConnectionContext.LoginSecure=$true;
+	<#$credential = Get-Credential
+	$loginName = $credential.UserName -replace("\\","")
+	$server.ConnectionContext.ConnectAsUserName=$loginName;
+	$server.ConnectionContext.ConnectAsUserPassword=$credential.Password
+	#$server.ConnectionContext.ApplicationName="SQLDeploymentScript"#>
+
+	write-host "Creating Database with Name : $DBName"
+
+	$db = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Database  -argumentlist $server , $DBName -ErrorAction SilentlyContinue 
+	$db.Create()
+
+	#Reference the database and display the date when it was created.
+ 
+	$db = $server.Databases[$DBName]
+	Write-Host $db.CreateDate
+  	
+	<#$role = $db.Roles["db_datareader"]
+
+  	$role.AddMember($user)#>
+  
+  }

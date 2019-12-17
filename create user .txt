@@ -1,0 +1,19 @@
+                                SQL CREATE User
+Assumptions:
+1. user running the script should have access and privledge to create user on the requried MS SQL Instance
+
+Algorithm:
+1. Script run from desktop.
+	a) user have to manually create a shortcut on desktop.
+	b) user need to set target of shortcut as {<powershell.exe location> -nologo -command "& '<script location>'}
+	c) script will run by double-clicking on icon on desktop.
+
+2. It will prompt for username,password and Instance name.
+
+3. Script will connect to database server using database name ,username, password and sql instance of each server.
+
+5. If username alredy exist , It will disply a mesaage "User already exist " and again prompt to the same GUI again
+
+6.Script will create  the user login
+
+7.Send email to team members

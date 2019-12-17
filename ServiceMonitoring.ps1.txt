@@ -1,0 +1,143 @@
+#Powershell Script for Disk Space Monitoring
+
+# Continue even if there are errors
+$ErrorActionPreference = "Continue";
+$path="C:\demos"
+
+ Remove-item $path\* -exclude "ServiceMonitoring.bat", "ServiceMonitoring.ps1", "ServerList.csv" -force -erroraction 'silentlycontinue'
+
+
+#Report Path
+$diskReport = "$path\SQLServiceMonitoring_Report.html"
+
+# Get computer list to check disk space
+#$computers = Get-Content "$path\ServerList.csv"
+
+
+$computers = Import-Csv $path\ServerList.csv |Select -ExpandProperty ServerName
+
+
+foreach ($name in $computers)
+{
+  if(Test-Connection -ComputerName $name -Count 1 -ErrorAction SilentlyContinue)
+  {
+    #Pingable server
+    write-output "$name"|out-file $path\AllServers.txt -Append
+  }
+  else
+  {
+    #Not Pingable server
+    write-output "$name : is not pingable"|out-file $path\Errorlog.txt -Append
+  }
+}
+
+$server=get-content "$path\AllServers.txt"
+
+#Deleting if File Exist
+if(Test-Path $diskReport)
+{
+    Remove-Item $diskReport
+}
+
+#Set colors for table cell backgrounds
+$redColor = "#FF0000"
+$orangeColor = "#FBB917"
+$whiteColor = "#FFFFFF"
+$sericecolor=""
+# Create and write HTML Header of report
+$titleDate = get-date -uformat "%m-%d-%Y - %A"
+$header = "
+                                <html>
+                                <head>
+                                <meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'>
+                                <title>DiskSpace Report</title>
+                                <STYLE TYPE='text/css'>
+                                <!--
+                                td {
+            font-family: Tahoma;
+                                                font-size: 12px;
+                                                border-top: 1px solid #999999;
+                                                border-right: 1px solid #999999;
+                                                border-bottom: 1px solid #999999;
+                                                border-left: 1px solid #999999;
+                                                padding-top: 0px;
+                                                padding-right: 0px;
+                                                padding-bottom: 0px;
+                                                padding-left: 0px;
+                                }
+                                body {
+                                                margin-left: 5px;
+                                                margin-top: 5px;
+                                                margin-right: 0px;
+                                                margin-bottom: 10px;
+                                                table {
+                                                border: thin solid #000000;
+                                }
+                                -->
+                                </style>
+                                </head>
+                                <body>
+                                <table width='60%'>
+                                <tr bgcolor='#006400'>
+                                <td colspan='7' height='35' align='center'>
+                                <font face='tahoma' color='#FFFFFF' size='4'><strong>SQL Services Report $titledate</strong></font>
+                                </td>
+                                </tr>
+                                </table>
+"
+Add-Content $diskReport $header
+
+# Create and write Table header for report
+$tableHeader = "
+<table width='60%'><tbody>
+                <tr bgcolor=#FFDAB9>
+                <td width='10%' height='30' align='center'><strong>ServerName</strong></td>
+                <td width='5%' align='center'><strong>Name</strong></td>
+                <td width='15%' align='center'><strong>DisplayName</strong></td>
+                <td width='5%' align='center'><strong>StartMode</strong></td>
+                <td width='5%' align='center'><strong>Status</strong></td>
+                </tr>
+"
+Add-Content $diskReport $tableHeader
+
+# Start processing disk space reports against a list of servers
+  foreach($computer in $server)
+  {              
+                 $cn=$computer.trim()
+
+ $service=gwmi win32_service -ComputerName $cn|?{$_.DisplayName -like "*SQL*"}
+
+    foreach($ser in $service)
+    {
+   
+
+    $State=$ser.State
+    $StartMode=$ser.StartMode
+    $displayname=$ser.displayname
+    $Name=$ser.Name
+
+    
+
+    if($ser.State -eq "Stopped" -and $ser.StartMode -eq "Auto" -or $ser.State -eq "start pending" -or $ser.State -eq "start pending")
+    {
+        $sericecolor=$redColor
+    
+    }
+
+
+
+# Create table data rows 
+    $dataRow = "
+                                <tr>
+        <tr bgcolor=#FFFFFF>
+        <td width='10%' align='center' height='25'bgcolor=`'$sericecolor`' >$computer</td>
+        <td width='5%' align='center'bgcolor=`'$sericecolor`' >$Name</td>
+        <td width='15%' align='center'bgcolor=`'$sericecolor`' >$displayname</td>
+        <td width='5%' align='center'bgcolor=`'$sericecolor`' >$StartMode</td>
+        <td width='5%' align='center' bgcolor=`'$sericecolor`' >$State</td>
+                                        </tr>
+"
+$sericecolor=""
+Add-Content $diskReport $dataRow  
+}}                     
+    

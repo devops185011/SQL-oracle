@@ -1,0 +1,78 @@
+$servers=Get-Content d:\AllServers.txt
+$cred=Get-Credential
+ 
+$output=foreach($s in $servers){
+gwmi -class win32_service -ComputerName $s -Credential $cred|select name|?{$_.name -like '*SQL*'}|foreach{$_.name}|out-file d:\name.txt
+$name=Get-Content d:\name.txt
+$ErrorActionPreference="Continue"
+foreach($temp in $name)
+{
+$service =gwmi -Class win32_service -ComputerName $s -Credential $cred -filter "Name='$temp'"
+$servicePID =$service.ProcessID
+$ProcessInfo=gwmi -Class win32_process -ComputerName $s -Credential $cred -Filter "ProcessID='$servicePID'"
+$OutputObj  = New-Object -Type PSObject
+    #$OutputObj | Add-Member -MemberType NoteProperty -Name ComputerName -Value $Computer.ToUpper()
+    $OutputObj | Add-Member -MemberType NoteProperty -Name SystemName -Value $service.SystemName
+    
+    $OutputObj | Add-Member -MemberType NoteProperty -Name Name -Value $service.name
+    $OutputObj | Add-Member -MemberType NoteProperty -Name state -Value $service.state
+    $OutputObj | Add-Member -MemberType NoteProperty -Name displayname -Value $service.displayname
+    
+    
+   # $OutputObj | Add-Member -MemberType NoteProperty -Name DisplayName -Value $Service.DisplayName
+    #$OutputObj | Add-Member -MemberType NoteProper -name status -Value $Service.status
+    
+    
+    if($service.state -eq 'running')
+    {
+    
+    $OutputObj | Add-Member -MemberType NoteProperty -Name starttime -Value $($Service.ConvertToDateTime($ProcessInfo.CreationDate))
+    }
+    
+    $OutputObj
+    
+   
+}
+}
+#$output
+$Output|export-csv d:\svc_output.csv -notypeinformation 
+$csv1 = 'd:\svc_output.csv '
+$csv2 = 'd:\svc_newoutput.csv'
+Import-Csv $csv1 | select systemname,name ,state,displayname,starttime,
+    @{n='Current_Date';e={(GET-DATE -Format G)}} |
+  Export-Csv $csv2 -NoTypeInformation
+  
+import-csv d:\svc_newoutput.csv | % { 
+try{
+$stime = [datetime]$_.starttime
+$etime = [datetime]$_.Current_Date
+$TimeDiff = New-TimeSpan $stime $etime
+$diff = "{0} days{1} hours{2} minute{3} seconds" -f [Math]::Abs($TimeDiff.get_Days()),[Math]::Abs($TimeDiff.get_Hours()),[Math]::Abs($TimeDiff.get_Minutes()),[Math]::Abs($TimeDiff.get_Seconds())
+Write-Output $diff|out-file d:\1.txt  -Append
+}catch{
+Write-Output " "|out-file d:\1.txt -Append
+}}
+Get-Content d:\1.txt|select @{n='uptime';e={$_}}|export-csv d:\1.csv -NoTypeInformation
+$csv1 = @(gc d:\svc_newoutput.csv)
+$csv2 = @(gc d:\1.csv)
+$csv3 = @()
+for ($i=0; $i -lt $csv1.Count; $i++) {
+    $csv3 += $csv1[$i] + ',' + $csv2[$i]
+    }
+$csv3|out-file d:\resul.csv -Encoding default
+<#
+Function Mail-user
+{
+    #sending mail from local machine
+    $olMailItem = 0  
+    $file1 = "d:\svc_output.csv"     
+    $olApp = new-object -comobject outlook.application  
+    $NewMail = $olApp.CreateItem($olMailItem)  
+    $NewMail.Subject = "User Details"   
+    $NewMail.To = 'harpriya.kaur@toyota.com'   
+    $NewMail.Body = "Hi, PFA " 
+    $newMail.Attachments.Add($file1)  
+    $NewMail.Send() 
+} 
+
+mail-user #>

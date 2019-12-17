@@ -1,0 +1,16 @@
+$QueryPath= "C:\SQLQuery.sql"
+$OutputFile = "C:\QueryOutput.txt"
+
+$ExecuteQuery= Get-Content -path $QueryPath | out-string
+
+"Results -- > `r`n`r`n" > $OutputFile
+
+FOREACH($server in GC "C:\serverinstance.txt")
+ {
+	$server 
+
+	"---------------------------------------------------------------------------------------------------------" >> $OutputFile
+	$server >> $OutputFile
+	"---------------------------------------------------------------------------------------------------------" >> $OutputFile
+	invoke-sqlcmd -ServerInstance $server -query $ExecuteQuery -querytimeout 65534 | ft -autosize | out-string -width 4096 >> $OutputFile
+ }

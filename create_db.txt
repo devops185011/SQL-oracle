@@ -1,0 +1,17 @@
+Assumptions:
+1. There would be common credentials for all database servers.
+2. User would have access to all database servers.
+3.The server name and database name is mandatory for the users.
+
+
+Algorithm:
+1. Script run from desktop.
+	a) user have to manually create a shortcut on desktop.
+	b) user need to set target of shortcut as {<powershell.exe location> -nologo -command "& '<script location>'}
+	c) script will run by double-clicking on icon on desktop.
+
+2. It will prompt for username and password.
+
+3.Script prompt for Server name , instance name
+4.After that Script will prompt for database name, no. of MDF files & other parameters.
+5.If any another database is there with same name it wil prompt the user to give another name.

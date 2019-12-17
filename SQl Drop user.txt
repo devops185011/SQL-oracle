@@ -1,0 +1,23 @@
+                                SQL Drop User
+Assumptions:
+1. There would be common credentials for all database servers.
+2. User would have access to all database servers.
+3. User would have access to run queries to get server name, database name and user login.
+
+Algorithm:
+1. Script run from desktop.
+	a) user have to manually create a shortcut on desktop.
+	b) user need to set target of shortcut as {<powershell.exe location> -nologo -command "& '<script location>'}
+	c) script will run by double-clicking on icon on desktop.
+
+2. It will prompt for username and password.
+
+3.Script will connect to database server using database name ,username, password and sql instance of each server.
+
+4.It will prompt for the login id.
+
+5.Then one more script will run which takes the backup
+
+6.Script will drop the user login
+
+7.Send email to team members
